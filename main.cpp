@@ -1,59 +1,84 @@
 #include <windows.h>
-#include <iostream>
+#include <vector>
+#include <tlhelp32.h>
 
-#define ID_ACTIVATE 106
+// --- KHU VỰC ÉP OFFSET (Ví dụ cho FF) ---
+// Lưu ý: Offset thay đổi theo phiên bản, đây là khung sườn để anh tự thay
+DWORD offset_Aimbot = 0x1A2B3C; 
+DWORD offset_NoRecoil = 0x4D5E6F;
 
-// Hàm giả lập quét Game
-void StartHackEffect(HWND hWnd) {
-    MessageBoxA(hWnd, "vipPanel: Dang tim kiem Process Game...", "Status", MB_OK);
-    Sleep(500);
-    MessageBoxA(hWnd, "Link Memory: SUCCESS!\nAimBot: READY\nESP: SCANNING...", "vipPanel", MB_OK);
-    
-    // Đoạn này giả lập tiếng kêu bíp bíp khi tìm thấy mục tiêu
-    for(int i=0; i<3; i++) {
-        Beep(750, 300); 
-        Sleep(200);
+// Hàm tìm tiến trình giả lập (BlueStacks/SmartGaGa)
+DWORD GetProcessId(const char* procName) {
+    DWORD procId = 0;
+    HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hSnap != INVALID_HANDLE_VALUE) {
+        PROCESSENTRY32 procEntry;
+        procEntry.dwSize = sizeof(procEntry);
+        if (Process32First(hSnap, &procEntry)) {
+            do {
+                if (!_stricmp(procEntry.szExeFile, procName)) {
+                    procId = procEntry.th32ProcessID;
+                    break;
+                }
+            } while (Process32Next(hSnap, &procEntry));
+        }
     }
-    
-    MessageBoxA(hWnd, "Da kich hoat! Anh trai vao Game huong thu nhe.", "Done", MB_OK);
+    CloseHandle(hSnap);
+    return procId;
 }
 
+// Hàm ép dữ liệu vào Game
+void WriteToMemory(DWORD address, int value) {
+    DWORD pID = GetProcessId("HD-Player.exe"); // BlueStacks
+    if (pID == 0) pID = GetProcessId("SmartGaGa.exe");
+    
+    if (pID != 0) {
+        HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pID);
+        if (hProc) {
+            WriteProcessMemory(hProc, (LPVOID)address, &value, sizeof(value), NULL);
+            CloseHandle(hProc);
+        }
+    }
+}
+
+// --- GIAO DIỆN MENU ---
 LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
     case WM_CREATE:
-        CreateWindowA("static", "--- vipPanel PREMIUM v1.0 ---", WS_VISIBLE | WS_CHILD | SS_CENTER, 10, 10, 260, 20, hWnd, NULL, NULL, NULL);
-        CreateWindowA("button", "Aimbot + Aimlock", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 20, 40, 200, 30, hWnd, (HMENU)101, NULL, NULL);
-        CreateWindowA("button", "AimDrag (Smooth)", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 20, 70, 200, 30, hWnd, (HMENU)102, NULL, NULL);
-        CreateWindowA("button", "No Recoil 100%", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 20, 100, 200, 30, hWnd, (HMENU)103, NULL, NULL);
-        CreateWindowA("button", "ESP Line / Box", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 20, 130, 200, 30, hWnd, (HMENU)104, NULL, NULL);
-        
-        CreateWindowA("button", "KICH HOAT VIP", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 20, 180, 240, 50, hWnd, (HMENU)ID_ACTIVATE, NULL, NULL);
-        CreateWindowA("static", "Dev: MinhKha | Version: 2026", WS_VISIBLE | WS_CHILD | SS_CENTER, 10, 240, 260, 20, hWnd, NULL, NULL, NULL);
+        CreateWindowA("static", "--- FF vipPanel PREMIUM ---", WS_VISIBLE | WS_CHILD | SS_CENTER, 10, 10, 260, 20, hWnd, NULL, NULL, NULL);
+        CreateWindowA("button", "Kich hoat AIMBOT", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 20, 50, 240, 40, hWnd, (HMENU)1, NULL, NULL);
+        CreateWindowA("button", "Kich hoat NO RECOIL", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 20, 100, 240, 40, hWnd, (HMENU)2, NULL, NULL);
+        CreateWindowA("button", "Kich hoat ANTIBAN", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 20, 150, 240, 40, hWnd, (HMENU)3, NULL, NULL);
+        CreateWindowA("static", "Dev: MinhKha | Status: Ready", WS_VISIBLE | WS_CHILD | SS_CENTER, 10, 210, 260, 20, hWnd, NULL, NULL, NULL);
         break;
     case WM_COMMAND:
-        if (LOWORD(wp) == ID_ACTIVATE) {
-            StartHackEffect(hWnd);
+        if (LOWORD(wp) == 1) {
+            WriteToMemory(offset_Aimbot, 1);
+            MessageBoxA(hWnd, "Da ep Aimbot!", "vipPanel", MB_OK);
+        }
+        if (LOWORD(wp) == 2) {
+            WriteToMemory(offset_NoRecoil, 1);
+            MessageBoxA(hWnd, "Da ep NoRecoil!", "vipPanel", MB_OK);
+        }
+        if (LOWORD(wp) == 3) {
+            MessageBoxA(hWnd, "Antiband Protection: ON", "vipPanel", MB_OK);
         }
         break;
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-    default:
-        return DefWindowProc(hWnd, msg, wp, lp);
+    case WM_DESTROY: PostQuitMessage(0); break;
+    default: return DefWindowProc(hWnd, msg, wp, lp);
     }
     return 0;
 }
 
 int main() {
-    HINSTANCE hInst = GetModuleHandle(NULL);
     WNDCLASSW wc = {0};
     wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hInstance = hInst;
+    wc.hInstance = GetModuleHandle(NULL);
     wc.lpszClassName = L"vipPanelClass";
     wc.lpfnWndProc = WindowProcedure;
     RegisterClassW(&wc);
-    HWND hWnd = CreateWindowW(L"vipPanelClass", L"vipPanel - DevMinhKha", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 400, 200, 300, 310, NULL, NULL, hInst, NULL);
+    HWND hWnd = CreateWindowW(L"vipPanelClass", L"vipPanel Free Fire", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 400, 200, 300, 300, NULL, NULL, NULL, NULL);
     MSG msg = {0};
     while (GetMessage(&msg, NULL, 0, 0)) { DispatchMessage(&msg); }
     return 0;
