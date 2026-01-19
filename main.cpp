@@ -1,6 +1,16 @@
 #include <windows.h>
 #include <string>
-
+int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow) {
+    // Bang thong bao chuc nang vipPanel
+    MessageBoxA(NULL, 
+        "--- vipPanel PREMIUM ---\n\n"
+        "Chuc nang: AimBot, AimDrag, NoRecoil, ESP\n"
+        "Developer: DevMinhKha\n"
+        "Status: Online Ready", 
+        "vipPanel System", 
+        MB_OK | MB_ICONINFORMATION);
+    return 0;
+}
 // --- KHAI BÁO ID CHO CÁC NÚT ---
 #define ID_AIMBOT 101
 #define ID_AIMLOCK 102
@@ -71,3 +81,4 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmd) {
     }
     return 0;
 }
+
