@@ -1,0 +1,16 @@
+name: Build-vipPanel-EXE
+on: [push]
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create vipPanel EXE
+        run: |
+          # Lenh nay duc ra file vipPanel.exe cho anh trai
+          g++ main.cpp -o vipPanel_DevMinhKha.exe -static
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vipPanel
+          path: vipPanel_DevMinhKha.exe
