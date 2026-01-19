@@ -1,33 +1,38 @@
 #include <windows.h>
+#include <iostream>
 
-// Khai bao ID cho cac nut bam
-#define ID_AIMBOT 101
-#define ID_AIMLOCK 102
-#define ID_AIMDRAG 103
-#define ID_NORECOIL 104
-#define ID_ESP 105
 #define ID_ACTIVATE 106
+
+// Hàm giả lập quét Game
+void StartHackEffect(HWND hWnd) {
+    MessageBoxA(hWnd, "vipPanel: Dang tim kiem Process Game...", "Status", MB_OK);
+    Sleep(500);
+    MessageBoxA(hWnd, "Link Memory: SUCCESS!\nAimBot: READY\nESP: SCANNING...", "vipPanel", MB_OK);
+    
+    // Đoạn này giả lập tiếng kêu bíp bíp khi tìm thấy mục tiêu
+    for(int i=0; i<3; i++) {
+        Beep(750, 300); 
+        Sleep(200);
+    }
+    
+    MessageBoxA(hWnd, "Da kich hoat! Anh trai vao Game huong thu nhe.", "Done", MB_OK);
+}
 
 LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
     case WM_CREATE:
-        CreateWindowA("static", "--- vipPanel PREMIUM MENU ---", WS_VISIBLE | WS_CHILD | SS_CENTER, 10, 10, 260, 20, hWnd, NULL, NULL, NULL);
-        CreateWindowA("button", "Kich hoat Aimbot", WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 20, 40, 200, 30, hWnd, (HMENU)ID_AIMBOT, NULL, NULL);
-        CreateWindowA("button", "Kich hoat AimLock", WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 20, 70, 200, 30, hWnd, (HMENU)ID_AIMLOCK, NULL, NULL);
-        CreateWindowA("button", "Kich hoat AimDrag", WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 20, 100, 200, 30, hWnd, (HMENU)ID_AIMDRAG, NULL, NULL);
-        CreateWindowA("button", "Kich hoat NoRecoil", WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 20, 130, 200, 30, hWnd, (HMENU)ID_NORECOIL, NULL, NULL);
-        CreateWindowA("button", "Kich hoat ESP (X-Ray)", WS_VISIBLE | WS_CHILD | BS_CHECKBOX, 20, 160, 200, 30, hWnd, (HMENU)ID_ESP, NULL, NULL);
-        CreateWindowA("button", "APPLY SETTINGS", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 20, 210, 240, 40, hWnd, (HMENU)ID_ACTIVATE, NULL, NULL);
-        CreateWindowA("static", "Dev: MinhKha | Status: Safe", WS_VISIBLE | WS_CHILD | SS_CENTER, 10, 260, 260, 20, hWnd, NULL, NULL, NULL);
+        CreateWindowA("static", "--- vipPanel PREMIUM v1.0 ---", WS_VISIBLE | WS_CHILD | SS_CENTER, 10, 10, 260, 20, hWnd, NULL, NULL, NULL);
+        CreateWindowA("button", "Aimbot + Aimlock", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 20, 40, 200, 30, hWnd, (HMENU)101, NULL, NULL);
+        CreateWindowA("button", "AimDrag (Smooth)", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 20, 70, 200, 30, hWnd, (HMENU)102, NULL, NULL);
+        CreateWindowA("button", "No Recoil 100%", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 20, 100, 200, 30, hWnd, (HMENU)103, NULL, NULL);
+        CreateWindowA("button", "ESP Line / Box", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 20, 130, 200, 30, hWnd, (HMENU)104, NULL, NULL);
+        
+        CreateWindowA("button", "KICH HOAT VIP", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 20, 180, 240, 50, hWnd, (HMENU)ID_ACTIVATE, NULL, NULL);
+        CreateWindowA("static", "Dev: MinhKha | Version: 2026", WS_VISIBLE | WS_CHILD | SS_CENTER, 10, 240, 260, 20, hWnd, NULL, NULL, NULL);
         break;
     case WM_COMMAND:
         if (LOWORD(wp) == ID_ACTIVATE) {
-            MessageBoxA(hWnd, "vipPanel: Da kich hoat thanh cong!", "Thong bao", MB_OK | MB_ICONINFORMATION);
-        }
-        if (LOWORD(wp) >= 101 && LOWORD(wp) <= 105) {
-            HWND hChk = GetDlgItem(hWnd, LOWORD(wp));
-            LRESULT st = SendMessage(hChk, BM_GETCHECK, 0, 0);
-            SendMessage(hChk, BM_SETCHECK, !st, 0);
+            StartHackEffect(hWnd);
         }
         break;
     case WM_DESTROY:
@@ -47,13 +52,9 @@ int main() {
     wc.hInstance = hInst;
     wc.lpszClassName = L"vipPanelClass";
     wc.lpfnWndProc = WindowProcedure;
-
-    if (!RegisterClassW(&wc)) return -1;
-    HWND hWnd = CreateWindowW(L"vipPanelClass", L"vipPanel - DevMinhKha", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 400, 200, 300, 330, NULL, NULL, hInst, NULL);
+    RegisterClassW(&wc);
+    HWND hWnd = CreateWindowW(L"vipPanelClass", L"vipPanel - DevMinhKha", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 400, 200, 300, 310, NULL, NULL, hInst, NULL);
     MSG msg = {0};
-    while (GetMessage(&msg, NULL, 0, 0)) {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
+    while (GetMessage(&msg, NULL, 0, 0)) { DispatchMessage(&msg); }
     return 0;
 }
